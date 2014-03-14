@@ -6,6 +6,8 @@ public class BeanProperty {
 
 	private String propertyValue;
 
+	private String propertyRef;
+
 	public String getPropertyName() {
 		return propertyName;
 	}
@@ -21,4 +23,19 @@ public class BeanProperty {
 	public void setPropertyValue(String propertyValue) {
 		this.propertyValue = propertyValue;
 	}
+
+	public String getPropertyRef() {
+		return propertyRef;
+	}
+
+	public void setPropertyRef(String propertyRef) {
+		this.propertyRef = propertyRef;
+	}
+
+	@Override
+	public String toString() {
+		return "BeanProperty [propertyName=" + propertyName + ", propertyValue=" + propertyValue + ", propertyRef="
+				+ propertyRef + "]";
+	}
+
 }

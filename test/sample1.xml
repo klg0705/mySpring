@@ -9,5 +9,25 @@ http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
 		<property name="male" value="true" />
 		<property name="birthday" value="1982-07-05" />
 		<property name="salary" value="817.52" />
+		<property name="dept" ref="lab" />
+	</bean>
+	<bean id="ghost" class="gordon.study.spring.sample.Employee">
+		<property name="name" value="Ghost" />
+		<property name="dept" ref="warehouse" />
+	</bean>
+	<bean id="elf" class="gordon.study.spring.sample.Employee">
+		<property name="name" value="Elf" />
+		<property name="dept" ref="lab" />
+	</bean>
+	<bean id="robot" class="gordon.study.spring.sample.Employee"
+		scope="prototype">
+		<property name="name" value="Robot" />
+		<property name="dept" ref="warehouse" />
+	</bean>
+	<bean id="lab" class="gordon.study.spring.sample.Department">
+		<property name="name" value="Research Lab" />
+	</bean>
+	<bean id="warehouse" class="gordon.study.spring.sample.Department">
+		<property name="name" value="Warehouse" />
 	</bean>
 </beans>

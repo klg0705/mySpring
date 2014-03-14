@@ -47,4 +47,10 @@ public class BeanDefinition {
 		this.scope = scope;
 	}
 
+	@Override
+	public String toString() {
+		return "BeanDefinition [name=" + name + ", clazz=" + clazz + ", scope=" + scope + ", properties=" + properties
+				+ "]";
+	}
+	
 }

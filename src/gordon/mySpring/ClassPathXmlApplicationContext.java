@@ -22,7 +22,7 @@ public class ClassPathXmlApplicationContext implements ApplicationContext {
 
 	@Override
 	public Object getBean(String beanName) throws Exception {
-		if (beans.containsKey("beanName")) {
+		if (beans.containsKey(beanName)) {
 			return beans.get(beanName);
 		}
 
@@ -32,7 +32,24 @@ public class ClassPathXmlApplicationContext implements ApplicationContext {
 			beans.put(beanName, bean);
 		}
 
+		assembleBean(beanName, bean);
+
 		return bean;
+	}
+
+	private void assembleBean(String beanName, Object targetBean) throws Exception {
+		BeanDefinition beanDef = beanDefinitions.get(beanName);
+		Method[] methods = targetBean.getClass().getMethods();
+		for (BeanProperty prop : beanDef.getProperties()) {
+			String beanRef = prop.getPropertyRef();
+			if (beanRef != null && beanRef.length() > 0) {
+
+				Object refBean = getBean(beanRef);
+
+				Method setterMethod = findSetterMethod(methods, targetBean.getClass(), prop.getPropertyName());
+				setterMethod.invoke(targetBean, refBean);
+			}
+		}
 	}
 
 	private Object createBean(String beanName) throws Exception {
@@ -44,9 +61,11 @@ public class ClassPathXmlApplicationContext implements ApplicationContext {
 		Object bean = Class.forName(beanDef.getClazz()).newInstance();
 		Method[] methods = bean.getClass().getMethods();
 		for (BeanProperty prop : beanDef.getProperties()) {
-			Method setterMethod = findSetterMethod(methods, bean.getClass(), prop.getPropertyName());
-			setterMethod.invoke(bean,
-					SimpleTypeConverter.convertTo(setterMethod.getParameterTypes()[0], prop.getPropertyValue()));
+			if (prop.getPropertyValue() != null && !prop.getPropertyValue().trim().isEmpty()) {
+				Method setterMethod = findSetterMethod(methods, bean.getClass(), prop.getPropertyName());
+				setterMethod.invoke(bean,
+						SimpleTypeConverter.convertTo(setterMethod.getParameterTypes()[0], prop.getPropertyValue()));
+			}
 		}
 		return bean;
 	}
@@ -123,4 +142,5 @@ public class ClassPathXmlApplicationContext implements ApplicationContext {
 		sb.append(Character.toUpperCase(property.charAt(0))).append(property.substring(1));
 		return sb.toString();
 	}
+
 }

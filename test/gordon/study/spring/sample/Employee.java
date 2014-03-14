@@ -15,6 +15,8 @@ public class Employee {
 	private Float salary;
 
 	private boolean male;
+	
+	private Department dept;
 
 	public void setMale(String YorN) {
 		male = "Y".equals(YorN);
@@ -69,6 +71,14 @@ public class Employee {
 		this.male = male;
 	}
 
+	public Department getDept() {
+		return dept;
+	}
+
+	public void setDept(Department dept) {
+		this.dept = dept;
+	}
+
 	public String getInfo() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Name: ").append(getName()).append("\n");
@@ -76,6 +86,7 @@ public class Employee {
 		sb.append("Birthday: ").append(getBirthday()).append("\n");
 		sb.append("Salary: ").append(getSalary()).append("\n");
 		sb.append("Male: ").append(isMale()).append("\n");
+		sb.append("Department: ").append(getDept().getName()).append("\n");
 
 		return sb.toString();
 	}

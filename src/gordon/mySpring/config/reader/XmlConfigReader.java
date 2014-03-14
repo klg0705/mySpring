@@ -36,6 +36,11 @@ public class XmlConfigReader {
 			BeanDefinition beanDef = new BeanDefinition();
 			beanDef.setName($bean.attributeValue("id"));
 			beanDef.setClazz($bean.attributeValue("class"));
+			if($bean.attribute("scope") != null) {
+				if("prototype".equals($bean.attributeValue("scope"))) {
+					beanDef.setScope(1);
+				}
+			}
 
 			result.put(beanDef.getName(), beanDef);
 
@@ -44,6 +49,7 @@ public class XmlConfigReader {
 				BeanProperty beanProp = new BeanProperty();
 				beanProp.setPropertyName($property.attributeValue("name"));
 				beanProp.setPropertyValue($property.attributeValue("value"));
+				beanProp.setPropertyRef($property.attributeValue("ref"));
 
 				beanDef.addPropertie(beanProp);
 			}
