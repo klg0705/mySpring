@@ -3,6 +3,7 @@ package gordon.mySpring;
 import gordon.mySpring.config.BeanDefinition;
 import gordon.mySpring.config.BeanProperty;
 import gordon.mySpring.config.reader.XmlConfigReader;
+import gordon.mySpring.util.SimpleTypeConverter;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -27,7 +28,9 @@ public class ClassPathXmlApplicationContext implements ApplicationContext {
 
 		Object bean = createBean(beanName);
 
-		beans.put(beanName, bean);
+		if (beanDefinitions.get(beanName).getScope() == 0) {
+			beans.put(beanName, bean);
+		}
 
 		return bean;
 	}
@@ -38,24 +41,86 @@ public class ClassPathXmlApplicationContext implements ApplicationContext {
 		}
 
 		BeanDefinition beanDef = beanDefinitions.get(beanName);
-		Object obj = Class.forName(beanDef.getClazz()).newInstance();
+		Object bean = Class.forName(beanDef.getClazz()).newInstance();
+		Method[] methods = bean.getClass().getMethods();
 		for (BeanProperty prop : beanDef.getProperties()) {
-			getSetterMethod(obj, prop.getPropertyName()).invoke(obj, prop.getPropertyValue());
+			Method setterMethod = findSetterMethod(methods, bean.getClass(), prop.getPropertyName());
+			setterMethod.invoke(bean,
+					SimpleTypeConverter.convertTo(setterMethod.getParameterTypes()[0], prop.getPropertyValue()));
 		}
-		
-		return obj;
+		return bean;
 	}
 
-	private Method getSetterMethod(Object obj, String property) throws Exception {
-		String setter = getSetterString(property);
-		Method method = obj.getClass().getMethod(setter, String.class);
-		return method;
+	// For multiple setter methods with same name:
+	// 1. If there is a getter/is(only for boolean/Boolean) method. The setter
+	// method which
+	// needs the same type param as getter's return type should be used.
+	// 2. Use the setter method which takes String type as param.
+	// 3. Return a random setter method. Do not do any smart try for type
+	// convert.
+	private Method findSetterMethod(Method[] methods, Class<?> beanClass, String property) {
+		Method getterMethod = getGetterMethodReturnType(methods, beanClass, property);
+		Class<?> returnType = null;
+		if (getterMethod != null) {
+			returnType = getterMethod.getReturnType();
+		}
+
+		String setterStr = getSetterMethodString(property);
+
+		Method setterMethodStringParam = null;
+		Method someSetterMethod = null;
+		for (Method method : methods) {
+			if (method.getName().equals(setterStr) && method.getParameterTypes().length == 1) {
+				if (returnType != null && method.getParameterTypes()[0].equals(returnType)) {
+					return method;
+				} else if (method.getParameterTypes()[0].equals(String.class)) {
+					setterMethodStringParam = method;
+				} else {
+					someSetterMethod = method;
+				}
+			}
+		}
+
+		if (setterMethodStringParam != null) {
+			return setterMethodStringParam;
+		} else if (someSetterMethod != null) {
+			return someSetterMethod;
+		} else {
+			throw new RuntimeException("Bean " + beanClass.getName() + " does not have the property " + property);
+		}
 	}
 
-	private String getSetterString(String property) {
+	private Method getGetterMethodReturnType(Method[] methods, Class<?> beanClass, String property) {
+		String getterStr = getGetterMethodString(property);
+		String isStr = getIsMethodString(property);
+
+		for (Method method : methods) {
+			if (method.getName().equals(getterStr) && method.getParameterTypes().length == 0) {
+				return method;
+			} else if (method.getName().equals(isStr) && method.getParameterTypes().length == 0) {
+				if (method.getReturnType() == boolean.class || method.getReturnType() == Boolean.class) {
+					return method;
+				}
+			}
+		}
+		return null;
+	}
+
+	private String getSetterMethodString(String property) {
 		StringBuilder sb = new StringBuilder("set");
-		sb.append(Character.toUpperCase(property.charAt(0))).append(
-				property.substring(1));
+		sb.append(Character.toUpperCase(property.charAt(0))).append(property.substring(1));
+		return sb.toString();
+	}
+
+	private String getGetterMethodString(String property) {
+		StringBuilder sb = new StringBuilder("get");
+		sb.append(Character.toUpperCase(property.charAt(0))).append(property.substring(1));
+		return sb.toString();
+	}
+
+	private String getIsMethodString(String property) {
+		StringBuilder sb = new StringBuilder("is");
+		sb.append(Character.toUpperCase(property.charAt(0))).append(property.substring(1));
 		return sb.toString();
 	}
 }

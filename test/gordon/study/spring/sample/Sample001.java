@@ -8,6 +8,6 @@ public class Sample001 {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"sample1.xml");
 		Employee gordon = (Employee) context.getBean("gordon");
-		gordon.welcome();
+		System.out.println(gordon.getInfo());
 	}
 }

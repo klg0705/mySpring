@@ -4,8 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BeanDefinition {
+	
 	private String name;
+	
 	private String clazz;
+	
+	// 0 : singleton, default
+	// 1 : prototype
+	private int scope = 0;
+	
 	private List<BeanProperty> properties = new ArrayList<BeanProperty>();
 
 	public String getName() {
@@ -30,6 +37,14 @@ public class BeanDefinition {
 
 	public void addPropertie(BeanProperty property) {
 		properties.add(property);
+	}
+
+	public int getScope() {
+		return scope;
+	}
+
+	public void setScope(int scope) {
+		this.scope = scope;
 	}
 
 }
